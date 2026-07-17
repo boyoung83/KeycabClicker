@@ -46,8 +46,8 @@ initSettings(
   (switchType) => playDown(switchType), // 스위치 선택 시 미리듣기
 );
 
-// 오프라인 지원
-if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+// 오프라인 지원 (단일 파일 배포본에선 window.__NO_SW__로 비활성화)
+if (!window.__NO_SW__ && 'serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js').catch(() => { /* 등록 실패해도 앱은 동작 */ });
   });
