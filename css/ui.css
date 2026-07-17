@@ -93,6 +93,44 @@
   margin-top: 8px;
 }
 
+/* 배치 카드 */
+.layout-picker { display: flex; gap: 8px; }
+.layout-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 4px;
+  border-radius: 14px;
+  background: #fff;
+  border: 2px solid #f0dbe5;
+  transition: border-color 120ms, background 120ms;
+}
+.layout-card.selected { border-color: #e2557f; background: #fff0f5; }
+.layout-card b { font-size: 15px; }
+.layout-card small { font-size: 11px; opacity: 0.6; }
+.layout-icon { font-size: 15px; letter-spacing: -1px; color: #b06a88; }
+
+/* 꾸밀 키 선택 탭 */
+.key-tabs { display: flex; gap: 8px; }
+.key-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 2px;
+  border-radius: 14px;
+  background: #fff;
+  border: 2px solid #f0dbe5;
+  border-top: 5px solid var(--tab-color, #eef2fb);
+  transition: border-color 120ms, background 120ms, transform 100ms;
+}
+.key-tab.selected { border-color: #e2557f; border-top-color: var(--tab-color, #eef2fb); background: #fff0f5; transform: scale(1.05); }
+.key-tab small { font-size: 10px; font-weight: 700; color: #b06a88; }
+.key-tab span { font-size: 20px; font-weight: 700; line-height: 1.2; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 /* 스위치 카드 */
 .switch-picker { display: flex; gap: 8px; }
 .switch-card {

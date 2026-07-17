@@ -9,32 +9,22 @@
 }
 
 #toy {
-  width: min(82vmin, 420px);
   height: auto;
   overflow: visible;
   margin-top: 4vh;
 }
+#stage.layout-grid #toy { width: min(88vmin, 470px); }
+#stage.layout-row #toy { width: min(96vw, 920px); margin-top: 0; }
 
 /* ── 누름 애니메이션: 손가락을 따라간다 (고정 길이 애니메이션 아님) ── */
-#capGroup {
+.cap-group {
   transform: translateY(0);
   transition: transform 90ms cubic-bezier(0.2, 1.4, 0.4, 1); /* 복귀: 살짝 오버슈트 */
   will-change: transform;
 }
-#stage.is-pressed #capGroup {
+.key.is-pressed .cap-group {
   transform: translateY(var(--travel));
   transition: transform 45ms cubic-bezier(0.3, 0.7, 0.4, 1);  /* 바닥까지 빠르게 */
-}
-
-/* 그림자: 눌리면 살짝 진해지고 좁아짐 */
-#toyShadow {
-  transform-box: fill-box;
-  transform-origin: center;
-  transition: transform 90ms ease, opacity 90ms ease;
-}
-#stage.is-pressed #toyShadow {
-  transform: scale(0.94, 0.9);
-  opacity: 0.38;
 }
 
 /* ── LED 글로우: 누르는 동안 켜지고 잔광을 남기며 꺼짐 ── */
@@ -42,8 +32,8 @@
   opacity: 0;
   transition: opacity 350ms ease-out;
 }
-#stage.is-pressed .led-glow { opacity: 0.95; transition: opacity 40ms ease-in; }
-#stage.is-pressed .led-glow-cap { opacity: 0.7; }
+.key.is-pressed .led-glow { opacity: 0.95; transition: opacity 40ms ease-in; }
+.key.is-pressed .led-glow-cap { opacity: 0.7; }
 #stage.led-off .led-glow { opacity: 0 !important; }
 
 /* ── 키링: 천천히 흔들리는 idle + 누를 때 반동 ── */
@@ -63,7 +53,10 @@
   65%  { transform: rotate(-2.5deg); }
   100% { transform: rotate(0deg); }
 }
+@media (prefers-reduced-motion: reduce) {
+  #keyring { animation: none; }
+}
 
-/* 광택은 캡과 함께 이동하되, 눌릴 때 빛이 미세하게 흐르는 느낌 */
-#gloss { transition: opacity 100ms ease; }
-#stage.is-pressed #gloss { opacity: 0.85; }
+/* 광택: 눌릴 때 빛이 미세하게 흐르는 느낌 */
+.gloss { transition: opacity 100ms ease; }
+.key.is-pressed .gloss { opacity: 0.85; }

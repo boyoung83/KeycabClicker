@@ -1,5 +1,5 @@
-// 설정 바텀 시트: 스위치/색상/도안/LED/효과/카운터
-// 모든 컨트롤은 중앙 state를 수정하고 onChange(state)를 호출한다.
+// 설정 바텀 시트: 배치/스위치/키 선택/색상/도안/LED/효과/카운터
+// 색상·도안·이름은 "꾸밀 키 고르기"에서 선택한 키에만 적용된다.
 
 import { EMOJI_PRESETS, PATTERN_PRESETS, CAP_COLORS, LED_COLORS, TEXT_COLORS } from './designs.js';
 import * as haptics from './haptics.js';
@@ -12,6 +12,8 @@ let _open = false;
 export const isOpen = () => _open;
 
 export function initSettings(state, onChange, previewSound) {
+  let selectedKey = 0;
+
   // ── 열기/닫기 ──
   const open = () => {
     _open = true;
@@ -32,6 +34,17 @@ export function initSettings(state, onChange, previewSound) {
   btn.addEventListener('click', () => (_open ? close() : open()));
   backdrop.addEventListener('pointerdown', close);
 
+  // ── 배치 (1×4 / 2×2) ──
+  const layoutCards = [...document.querySelectorAll('.layout-card')];
+  const syncLayout = () => layoutCards.forEach((c) =>
+    c.classList.toggle('selected', c.dataset.layout === state.layout));
+  layoutCards.forEach((card) => card.addEventListener('click', () => {
+    state.layout = card.dataset.layout;
+    syncLayout();
+    onChange(state);
+  }));
+  syncLayout();
+
   // ── 스위치 종류 ──
   const switchCards = [...document.querySelectorAll('.switch-card')];
   const syncSwitch = () => switchCards.forEach((c) =>
@@ -44,7 +57,38 @@ export function initSettings(state, onChange, previewSound) {
   }));
   syncSwitch();
 
-  // ── 키캡 색상 ──
+  // ── 꾸밀 키 선택 탭 ──
+  const keyTabs = document.getElementById('keyTabs');
+  state.keys.forEach((_, i) => {
+    const b = document.createElement('button');
+    b.className = 'key-tab';
+    b.dataset.index = String(i);
+    b.addEventListener('click', () => {
+      selectedKey = i;
+      syncKeyTabs();
+      syncColor();
+      syncDesign();
+      syncText();
+    });
+    keyTabs.appendChild(b);
+  });
+  const keyPreview = (k) => {
+    if (k.design.type === 'pattern') {
+      const pat = PATTERN_PRESETS.find((p) => p.id === k.design.value);
+      return pat ? pat.label : '무늬';
+    }
+    return k.design.value || '?';
+  };
+  const syncKeyTabs = () => {
+    [...keyTabs.children].forEach((tab, i) => {
+      tab.classList.toggle('selected', i === selectedKey);
+      tab.innerHTML = `<small>키 ${i + 1}</small><span>${keyPreview(state.keys[i])}</span>`;
+      const sw = CAP_COLORS[state.keys[i].capColor] || CAP_COLORS.clear;
+      tab.style.setProperty('--tab-color', sw.swatch);
+    });
+  };
+
+  // ── 키캡 색상 (선택된 키에 적용) ──
   const colorRow = document.getElementById('colorPicker');
   for (const [id, c] of Object.entries(CAP_COLORS)) {
     const b = document.createElement('button');
@@ -53,15 +97,16 @@ export function initSettings(state, onChange, previewSound) {
     b.title = c.label;
     b.dataset.id = id;
     b.addEventListener('click', () => {
-      state.capColor = id;
-      syncSel(colorRow, id);
+      state.keys[selectedKey].capColor = id;
+      syncColor();
+      syncKeyTabs();
       onChange(state);
     });
     colorRow.appendChild(b);
   }
-  syncSel(colorRow, state.capColor);
+  const syncColor = () => syncSel(colorRow, state.keys[selectedKey].capColor);
 
-  // ── 도안 그리드 (이모지 + 패턴) ──
+  // ── 도안 그리드 (이모지 + 패턴, 선택된 키에 적용) ──
   const grid = document.getElementById('designPicker');
   for (const emoji of EMOJI_PRESETS) {
     const b = document.createElement('button');
@@ -69,8 +114,9 @@ export function initSettings(state, onChange, previewSound) {
     b.textContent = emoji;
     b.dataset.key = `emoji:${emoji}`;
     b.addEventListener('click', () => {
-      state.design = { type: 'emoji', value: emoji };
+      state.keys[selectedKey].design = { type: 'emoji', value: emoji };
       syncDesign();
+      syncKeyTabs();
       onChange(state);
     });
     grid.appendChild(b);
@@ -83,22 +129,23 @@ export function initSettings(state, onChange, previewSound) {
     // 메인 SVG defs의 패턴을 그대로 미리보기로 사용 (같은 문서라 url(#...) 공유됨)
     b.innerHTML = `<svg viewBox="0 0 60 60"><rect width="60" height="60" fill="url(#pat-${pat.id})"/></svg>`;
     b.addEventListener('click', () => {
-      state.design = { type: 'pattern', value: pat.id };
+      state.keys[selectedKey].design = { type: 'pattern', value: pat.id };
       syncDesign();
+      syncKeyTabs();
       onChange(state);
     });
     grid.appendChild(b);
   }
   const syncDesign = () => {
-    const key = `${state.design.type}:${state.design.value}`;
+    const d = state.keys[selectedKey].design;
+    const key = `${d.type}:${d.value}`;
     [...grid.children].forEach((c) => c.classList.toggle('selected', c.dataset.key === key));
   };
-  syncDesign();
 
-  // ── 직접 만들기 (텍스트 + 글자색) ──
+  // ── 직접 만들기 (텍스트 + 글자색, 선택된 키에 적용) ──
   const textInput = document.getElementById('customText');
   const textColorRow = document.getElementById('textColorPicker');
-  let textColor = state.design.type === 'text' ? (state.design.color || TEXT_COLORS[0]) : TEXT_COLORS[0];
+  let textColor = TEXT_COLORS[0];
   for (const color of TEXT_COLORS) {
     const b = document.createElement('button');
     b.className = 'swatch';
@@ -111,17 +158,31 @@ export function initSettings(state, onChange, previewSound) {
     });
     textColorRow.appendChild(b);
   }
-  syncSel(textColorRow, textColor);
-  if (state.design.type === 'text') textInput.value = state.design.value;
-
   const applyText = () => {
     const v = textInput.value.trim();
     if (!v) return;
-    state.design = { type: 'text', value: v, color: textColor };
+    state.keys[selectedKey].design = { type: 'text', value: v, color: textColor };
     syncDesign();
+    syncKeyTabs();
     onChange(state);
   };
   textInput.addEventListener('input', applyText);
+  const syncText = () => {
+    const d = state.keys[selectedKey].design;
+    if (d.type === 'text') {
+      textInput.value = d.value;
+      textColor = d.color || TEXT_COLORS[0];
+    } else {
+      textInput.value = '';
+    }
+    syncSel(textColorRow, textColor);
+  };
+
+  // 첫 동기화
+  syncKeyTabs();
+  syncColor();
+  syncDesign();
+  syncText();
 
   // ── LED 색상 ──
   const ledRow = document.getElementById('ledPicker');
