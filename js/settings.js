@@ -1,7 +1,7 @@
 // 설정 바텀 시트: 배치/스위치/키 선택/색상/도안/LED/효과/카운터
 // 색상·도안·이름은 "꾸밀 키 고르기"에서 선택한 키에만 적용된다.
 
-import { EMOJI_PRESETS, PATTERN_PRESETS, CAP_COLORS, LED_COLORS, TEXT_COLORS } from './designs.js';
+import { EMOJI_PRESETS, PATTERN_PRESETS, CAP_COLORS, LED_COLORS, TEXT_COLORS, patternPreviewURL } from './designs.js';
 import * as haptics from './haptics.js';
 
 const sheet = document.getElementById('sheet');
@@ -126,8 +126,8 @@ export function initSettings(state, onChange, previewSound) {
     b.className = 'design-cell';
     b.title = pat.label;
     b.dataset.key = `pattern:${pat.id}`;
-    // 메인 SVG defs의 패턴을 그대로 미리보기로 사용 (같은 문서라 url(#...) 공유됨)
-    b.innerHTML = `<svg viewBox="0 0 60 60"><rect width="60" height="60" fill="url(#pat-${pat.id})"/></svg>`;
+    // 3D 데칼과 같은 캔버스 페인터로 그린 썸네일
+    b.innerHTML = `<img src="${patternPreviewURL(pat.id)}" alt="${pat.label}">`;
     b.addEventListener('click', () => {
       state.keys[selectedKey].design = { type: 'pattern', value: pat.id };
       syncDesign();

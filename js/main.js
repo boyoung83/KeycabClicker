@@ -1,7 +1,7 @@
 // 엔트리: 상태 로드 → 장면 구성 → 비주얼 적용 → 입력/사운드/카운터/설정 연결
 
 import { load, save } from './storage.js';
-import { buildScene, applyLayout, initPress, applyVisuals } from './keycap.js';
+import { buildScene, applyLayout, initPress, applyVisuals } from './scene3d.js';
 import { initSettings, updateSheetCount, isOpen } from './settings.js';
 import { playDown, playUp } from './audio/switches.js';
 import * as haptics from './haptics.js';

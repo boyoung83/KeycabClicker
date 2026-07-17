@@ -1,6 +1,6 @@
 // 캐시 우선 서비스 워커 — 한 번 로드하면 오프라인에서도 동작
 
-const CACHE = 'keycap-keyring-v1';
+const CACHE = 'keycap-keyring-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -8,13 +8,17 @@ const ASSETS = [
   './css/keycap.css',
   './css/ui.css',
   './js/main.js',
-  './js/keycap.js',
+  './js/scene3d.js',
   './js/settings.js',
   './js/designs.js',
   './js/storage.js',
   './js/haptics.js',
   './js/audio/engine.js',
   './js/audio/switches.js',
+  './js/vendor/three.module.min.js',
+  './js/vendor/three.core.min.js',
+  './js/vendor/RoundedBoxGeometry.js',
+  './js/vendor/RoomEnvironment.js',
   './manifest.webmanifest',
   './favicon.svg',
 ];
