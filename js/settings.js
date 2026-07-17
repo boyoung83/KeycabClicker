@@ -1,0 +1,196 @@
+// 설정 바텀 시트: 스위치/색상/도안/LED/효과/카운터
+// 모든 컨트롤은 중앙 state를 수정하고 onChange(state)를 호출한다.
+
+import { EMOJI_PRESETS, PATTERN_PRESETS, CAP_COLORS, LED_COLORS, TEXT_COLORS } from './designs.js';
+import * as haptics from './haptics.js';
+
+const sheet = document.getElementById('sheet');
+const backdrop = document.getElementById('sheetBackdrop');
+const btn = document.getElementById('settingsBtn');
+
+let _open = false;
+export const isOpen = () => _open;
+
+export function initSettings(state, onChange, previewSound) {
+  // ── 열기/닫기 ──
+  const open = () => {
+    _open = true;
+    sheet.hidden = false;
+    backdrop.hidden = false;
+    document.getElementById('sheetCount').textContent = state.count.toLocaleString('ko-KR');
+    requestAnimationFrame(() => {
+      sheet.classList.add('open');
+      backdrop.classList.add('open');
+    });
+  };
+  const close = () => {
+    _open = false;
+    sheet.classList.remove('open');
+    backdrop.classList.remove('open');
+    setTimeout(() => { sheet.hidden = true; backdrop.hidden = true; }, 260);
+  };
+  btn.addEventListener('click', () => (_open ? close() : open()));
+  backdrop.addEventListener('pointerdown', close);
+
+  // ── 스위치 종류 ──
+  const switchCards = [...document.querySelectorAll('.switch-card')];
+  const syncSwitch = () => switchCards.forEach((c) =>
+    c.classList.toggle('selected', c.dataset.switch === state.switchType));
+  switchCards.forEach((card) => card.addEventListener('click', () => {
+    state.switchType = card.dataset.switch;
+    syncSwitch();
+    onChange(state);
+    previewSound(state.switchType); // 즉시 미리듣기
+  }));
+  syncSwitch();
+
+  // ── 키캡 색상 ──
+  const colorRow = document.getElementById('colorPicker');
+  for (const [id, c] of Object.entries(CAP_COLORS)) {
+    const b = document.createElement('button');
+    b.className = 'swatch';
+    b.style.setProperty('--sw', c.swatch);
+    b.title = c.label;
+    b.dataset.id = id;
+    b.addEventListener('click', () => {
+      state.capColor = id;
+      syncSel(colorRow, id);
+      onChange(state);
+    });
+    colorRow.appendChild(b);
+  }
+  syncSel(colorRow, state.capColor);
+
+  // ── 도안 그리드 (이모지 + 패턴) ──
+  const grid = document.getElementById('designPicker');
+  for (const emoji of EMOJI_PRESETS) {
+    const b = document.createElement('button');
+    b.className = 'design-cell';
+    b.textContent = emoji;
+    b.dataset.key = `emoji:${emoji}`;
+    b.addEventListener('click', () => {
+      state.design = { type: 'emoji', value: emoji };
+      syncDesign();
+      onChange(state);
+    });
+    grid.appendChild(b);
+  }
+  for (const pat of PATTERN_PRESETS) {
+    const b = document.createElement('button');
+    b.className = 'design-cell';
+    b.title = pat.label;
+    b.dataset.key = `pattern:${pat.id}`;
+    // 메인 SVG defs의 패턴을 그대로 미리보기로 사용 (같은 문서라 url(#...) 공유됨)
+    b.innerHTML = `<svg viewBox="0 0 60 60"><rect width="60" height="60" fill="url(#pat-${pat.id})"/></svg>`;
+    b.addEventListener('click', () => {
+      state.design = { type: 'pattern', value: pat.id };
+      syncDesign();
+      onChange(state);
+    });
+    grid.appendChild(b);
+  }
+  const syncDesign = () => {
+    const key = `${state.design.type}:${state.design.value}`;
+    [...grid.children].forEach((c) => c.classList.toggle('selected', c.dataset.key === key));
+  };
+  syncDesign();
+
+  // ── 직접 만들기 (텍스트 + 글자색) ──
+  const textInput = document.getElementById('customText');
+  const textColorRow = document.getElementById('textColorPicker');
+  let textColor = state.design.type === 'text' ? (state.design.color || TEXT_COLORS[0]) : TEXT_COLORS[0];
+  for (const color of TEXT_COLORS) {
+    const b = document.createElement('button');
+    b.className = 'swatch';
+    b.style.setProperty('--sw', color);
+    b.dataset.id = color;
+    b.addEventListener('click', () => {
+      textColor = color;
+      syncSel(textColorRow, color);
+      if (textInput.value.trim()) applyText();
+    });
+    textColorRow.appendChild(b);
+  }
+  syncSel(textColorRow, textColor);
+  if (state.design.type === 'text') textInput.value = state.design.value;
+
+  const applyText = () => {
+    const v = textInput.value.trim();
+    if (!v) return;
+    state.design = { type: 'text', value: v, color: textColor };
+    syncDesign();
+    onChange(state);
+  };
+  textInput.addEventListener('input', applyText);
+
+  // ── LED 색상 ──
+  const ledRow = document.getElementById('ledPicker');
+  for (const led of LED_COLORS) {
+    const b = document.createElement('button');
+    b.className = 'swatch' + (led.color ? '' : ' led-off-swatch');
+    if (led.color) b.style.setProperty('--sw', led.color);
+    else b.textContent = '✕';
+    b.dataset.id = led.id;
+    b.addEventListener('click', () => {
+      state.ledColor = led.color;
+      syncSel(ledRow, led.id);
+      onChange(state);
+    });
+    ledRow.appendChild(b);
+  }
+  syncSel(ledRow, (LED_COLORS.find((l) => l.color === state.ledColor) || LED_COLORS[0]).id);
+
+  // ── 효과 토글 ──
+  const soundToggle = document.getElementById('soundToggle');
+  soundToggle.checked = state.soundOn;
+  soundToggle.addEventListener('change', () => {
+    state.soundOn = soundToggle.checked;
+    onChange(state);
+  });
+
+  const hapticsToggle = document.getElementById('hapticsToggle');
+  if (!haptics.supported) {
+    document.getElementById('hapticsRow').style.display = 'none';
+  } else {
+    hapticsToggle.checked = state.hapticsOn;
+    hapticsToggle.addEventListener('change', () => {
+      state.hapticsOn = hapticsToggle.checked;
+      onChange(state);
+    });
+  }
+
+  // ── 카운터 초기화 (2단계 확인) ──
+  const resetBtn = document.getElementById('resetBtn');
+  let confirming = false;
+  let confirmTimer = 0;
+  resetBtn.addEventListener('click', () => {
+    if (!confirming) {
+      confirming = true;
+      resetBtn.textContent = '한 번 더 누르면 초기화!';
+      resetBtn.classList.add('confirm');
+      confirmTimer = setTimeout(() => {
+        confirming = false;
+        resetBtn.textContent = '초기화';
+        resetBtn.classList.remove('confirm');
+      }, 3000);
+    } else {
+      clearTimeout(confirmTimer);
+      confirming = false;
+      resetBtn.textContent = '초기화';
+      resetBtn.classList.remove('confirm');
+      state.count = 0;
+      document.getElementById('sheetCount').textContent = '0';
+      onChange(state);
+    }
+  });
+}
+
+export function updateSheetCount(count) {
+  if (_open) {
+    document.getElementById('sheetCount').textContent = count.toLocaleString('ko-KR');
+  }
+}
+
+function syncSel(row, id) {
+  [...row.children].forEach((c) => c.classList.toggle('selected', c.dataset.id === id));
+}

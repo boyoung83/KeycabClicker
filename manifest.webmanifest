@@ -1,0 +1,13 @@
+{
+  "name": "키캡 키링",
+  "short_name": "키캡키링",
+  "description": "딸깍딸깍! 폰에서 즐기는 키캡 키링 장난감",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffe3ec",
+  "theme_color": "#ffe3ec",
+  "icons": [
+    { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

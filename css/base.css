@@ -1,0 +1,42 @@
+/* 리셋 + 뷰포트 잠금 */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* JS가 상태에 따라 갱신하는 테마 변수 */
+  --cap-tint: rgba(236, 242, 255, 0.42);
+  --cap-face: rgba(248, 250, 255, 0.34);
+  --stem-color: #2f9dff;
+  --led-color: #ffd166;
+  --travel: 15px;
+}
+
+html, body {
+  height: 100%;
+  overscroll-behavior: none;
+}
+
+body {
+  position: fixed;           /* 스크롤/당겨서 새로고침 완전 차단 */
+  inset: 0;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+  background:
+    radial-gradient(120% 90% at 50% 0%, #fff3f6 0%, #ffe3ec 45%, #f3d9ff 100%);
+  color: #5a3a4a;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+input { font: inherit; }
