@@ -49,29 +49,11 @@ initSettings(
   (switchType) => playDown(switchType), // 스위치 선택 시 미리듣기
 );
 
-// ── 카운터 초기화 (숫자 옆 버튼, 2단계 확인) ──
-const resetBtn = document.getElementById('resetBtn');
-let resetConfirming = false;
-let resetTimer = 0;
-resetBtn.addEventListener('click', () => {
-  if (!resetConfirming) {
-    resetConfirming = true;
-    resetBtn.classList.add('confirm');
-    resetBtn.textContent = '초기화?';
-    resetTimer = setTimeout(() => {
-      resetConfirming = false;
-      resetBtn.classList.remove('confirm');
-      resetBtn.textContent = '↺';
-    }, 3000);
-  } else {
-    clearTimeout(resetTimer);
-    resetConfirming = false;
-    resetBtn.classList.remove('confirm');
-    resetBtn.textContent = '↺';
-    state.count = 0;
-    renderCount();
-    save(state);
-  }
+// ── 카운터 리셋 (숫자 옆 버튼, 누르면 즉시 초기화) ──
+document.getElementById('resetBtn').addEventListener('click', () => {
+  state.count = 0;
+  renderCount();
+  save(state);
 });
 
 // 오프라인 지원 (단일 파일 배포본에선 window.__NO_SW__로 비활성화)

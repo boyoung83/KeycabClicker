@@ -14,6 +14,7 @@ let run = 0;                  // 타이머 무효화 토큰
 const hud = document.getElementById('gameHud');
 const hudBig = document.getElementById('hudBig');
 const hudSub = document.getElementById('hudSub');
+const hudRank = document.getElementById('hudRank');
 const modeBar = document.getElementById('modeBar');
 
 const rand4 = () => Math.floor(Math.random() * KEY_COUNT);
@@ -148,11 +149,35 @@ function molePress(i) {
   }
 }
 
-/* ══════════ 10초 연타 챌린지 ══════════ */
+/* ══════════ 10초 연타 챌린지 (TOP 5 랭킹) ══════════ */
 let speedCount = 0, speedEnd = 0, speedTicker = 0;
 
-async function speedStart() {
+const RANK_MEDALS = ['🥇', '🥈', '🥉', '4위', '5위'];
+
+function showRanks() {
+  const ranks = state.games.speedRanks;
+  if (!ranks.length) {
+    hudRank.innerHTML = '<div>아직 기록이 없어요!</div>';
+  } else {
+    hudRank.innerHTML = ranks.map((s, i) => `<div>${RANK_MEDALS[i]} ${s}번</div>`).join('');
+  }
+  hudRank.hidden = false;
+}
+
+function hideRanks() { hudRank.hidden = true; }
+
+// 연타 진입 화면: 랭킹을 보여주고 키를 누르면 시작
+function speedEnter() {
+  ++run;
+  clearInterval(speedTicker);
+  phase = 'ready';
+  setHud('10초 연타 챌린지 ⏱️', '아무 키나 누르면 시작!');
+  showRanks();
+}
+
+async function speedRun() {
   const my = ++run;
+  hideRanks();
   phase = 'show';
   for (const n of ['3', '2', '1']) {
     setHud(n, '10초 동안 최대한 많이! ⏱️');
@@ -172,13 +197,21 @@ async function speedStart() {
       clearInterval(speedTicker);
       phase = 'over';
       playFx('success');
-      const isNew = updateBest('speed', speedCount);
-      setHud(`끝! ${speedCount}번 딸깍! 🎉`, isNew ? '✨ 최고 기록! 아무 키나 누르면 다시' : `최고 기록 ${best('speed')}번 · 아무 키나 누르면 다시`);
+      updateBest('speed', speedCount);
+      // TOP 5 랭킹 갱신
+      const ranks = [...state.games.speedRanks, speedCount].sort((a, b) => b - a).slice(0, 5);
+      state.games.speedRanks = ranks;
+      saveState(state);
+      const place = ranks.indexOf(speedCount) + 1;
+      setHud(`끝! ${speedCount}번 딸깍! 🎉`,
+        place >= 1 ? `${RANK_MEDALS[place - 1]} ${place}위 기록! 아무 키나 누르면 다시` : '아무 키나 누르면 다시 시작');
+      showRanks();
     }
   }, 100);
 }
 
 function speedPress() {
+  if (phase === 'ready') { speedRun(); return; }
   if (phase === 'play') speedCount += 1;
 }
 
@@ -253,7 +286,7 @@ function rhythmPress(i) {
 }
 
 /* ══════════ 모드 관리 ══════════ */
-const STARTERS = { simon: simonStart, mole: moleStart, speed: speedStart, rhythm: rhythmStart };
+const STARTERS = { simon: simonStart, mole: moleStart, speed: speedEnter, rhythm: rhythmStart };
 const PRESSERS = { simon: simonPress, mole: molePress, speed: speedPress, rhythm: rhythmPress };
 
 export function setMode(m) {
@@ -261,6 +294,7 @@ export function setMode(m) {
   clearTimeout(moleTimer);
   clearInterval(speedTicker);
   clearAllGlow();
+  hideRanks();
   mode = m;
   phase = 'idle';
   [...modeBar.children].forEach((b) => b.classList.toggle('selected', b.dataset.mode === m));

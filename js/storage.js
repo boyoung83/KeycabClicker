@@ -16,7 +16,7 @@ export const DEFAULTS = {
   ledColor: '#ffd166',                      // null이면 LED 끔
   soundOn: true,
   hapticsOn: true,
-  games: { simon: 0, mole: 0, speed: 0, rhythm: 0 },  // 게임별 최고 기록
+  games: { simon: 0, mole: 0, speed: 0, rhythm: 0, speedRanks: [] },  // 게임별 최고 기록 + 연타 TOP5
 };
 
 function cloneDefaults() {
@@ -44,6 +44,7 @@ export function load() {
       });
       state.keys.forEach((k) => { k.capColor = normalizeColor(k.capColor); });
       state.games = { ...cloneDefaults().games, ...(parsed.games || {}) };
+      if (!Array.isArray(state.games.speedRanks)) state.games.speedRanks = [];
       return state;
     }
     // v1(1구 버전)에서 마이그레이션: 기존 키캡 설정을 첫 번째 키로 이어받음

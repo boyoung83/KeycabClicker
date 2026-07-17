@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<meta name="theme-color" content="#ffe3ec">
+<meta name="theme-color" content="#241b38">
 <title>키캡 키링 — 딸깍딸깍</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="manifest" href="manifest.webmanifest">
@@ -17,7 +17,7 @@
   <div class="counter-label">딸깍 횟수</div>
   <div class="counter-line">
     <div id="counter" class="counter" aria-live="polite">0</div>
-    <button id="resetBtn" class="reset-mini" aria-label="카운터 초기화">↺</button>
+    <button id="resetBtn" class="reset-mini" aria-label="카운터 초기화">리셋</button>
   </div>
 </div>
 
@@ -25,6 +25,7 @@
 <div id="gameHud" class="game-hud" hidden>
   <div id="hudBig"></div>
   <div id="hudSub"></div>
+  <div id="hudRank" class="hud-rank" hidden></div>
 </div>
 
 <!-- 키캡을 누르는 히트 영역 전체 (Three.js 캔버스) -->

@@ -99,6 +99,22 @@ function torusLink(r, tube) {
   return new THREE.Mesh(new THREE.TorusGeometry(r, tube, 12, 28), MAT.gold);
 }
 
+// LED 헤일로용 방사형 그라디언트 텍스처
+function makeGlowTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 128;
+  const g = c.getContext('2d');
+  const grad = g.createRadialGradient(64, 64, 4, 64, 64, 64);
+  grad.addColorStop(0, 'rgba(255,255,255,1)');
+  grad.addColorStop(0.35, 'rgba(255,255,255,0.5)');
+  grad.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = grad;
+  g.fillRect(0, 0, 128, 128);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
 function buildChain() {
   const g = new THREE.Group();
 
@@ -164,7 +180,7 @@ export function buildScene() {
   // 환경광 (금속/플라스틱 반사의 핵심)
   const pmrem = new THREE.PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-  scene.environmentIntensity = 0.55;
+  scene.environmentIntensity = 0.42;   // 어두운 배경에서 LED가 도드라지게 주변광 낮춤
 
   camera = new THREE.PerspectiveCamera(30, 1, 0.1, 60);
 
@@ -179,8 +195,8 @@ export function buildScene() {
   key.shadow.bias = -0.0004;
   scene.add(key);
 
-  // 핑크 바운스 (배경 테이블 반사광)
-  const bounce = new THREE.HemisphereLight(0xfff0f4, 0xffb9cf, 0.5);
+  // 배경(어두운 보라)에 맞춘 바운스 광
+  const bounce = new THREE.HemisphereLight(0xcdb8ee, 0x241b38, 0.4);
   scene.add(bounce);
 
   toy = new THREE.Group();
@@ -189,7 +205,7 @@ export function buildScene() {
   // 바닥 (그림자 받기 전용)
   const ground = new THREE.Mesh(
     new THREE.PlaneGeometry(40, 40),
-    new THREE.ShadowMaterial({ opacity: 0.16, color: 0x6b2c48 }),
+    new THREE.ShadowMaterial({ opacity: 0.4, color: 0x000000 }),
   );
   ground.rotation.x = -Math.PI / 2;
   ground.position.y = -CASE_H;
@@ -198,6 +214,7 @@ export function buildScene() {
 
   // 키캡 4개
   const geo = capGeometry();
+  const glowTex = makeGlowTexture();
   for (let i = 0; i < KEY_COUNT; i++) {
     const group = new THREE.Group();
 
@@ -221,9 +238,21 @@ export function buildScene() {
     group.add(decal);
 
     // LED (캡 아래에서 새어나오는 빛)
-    const light = new THREE.PointLight(0xffd166, 0, 2.2, 2);
+    const light = new THREE.PointLight(0xffd166, 0, 2.8, 1.8);
     light.position.y = 0.08;
     group.add(light);
+
+    // LED 헤일로 (가산 블렌딩 — 캡 둘레로 빛이 번지는 확실한 발광 표현)
+    const glowPlane = new THREE.Mesh(
+      new THREE.PlaneGeometry(3.4, 3.4),
+      new THREE.MeshBasicMaterial({
+        map: glowTex, transparent: true, opacity: 0,
+        blending: THREE.AdditiveBlending, depthWrite: false, color: 0xffd166,
+      }),
+    );
+    glowPlane.rotation.x = -Math.PI / 2;
+    glowPlane.renderOrder = 2;
+    toy.add(glowPlane);
 
     // 히트 박스 (아이 손가락용, 넉넉하게)
     const hit = new THREE.Mesh(
@@ -235,7 +264,7 @@ export function buildScene() {
     group.add(hit);
 
     toy.add(group);
-    caps.push({ group, mesh, decalCtx, decalTex, light, hit, y: CAP_REST, vy: 0, target: CAP_REST, glow: false });
+    caps.push({ group, mesh, decalCtx, decalTex, light, glowPlane, hit, y: CAP_REST, vy: 0, target: CAP_REST, glow: false });
   }
 
   chainGroup = buildChain();
@@ -308,6 +337,7 @@ export function applyLayout(layout) {
   const [w] = L.caseSize;
   caps.forEach((c, i) => {
     c.group.position.set(L.caps[i][0], c.y, L.caps[i][1]);
+    c.glowPlane.position.set(L.caps[i][0], 0.1, L.caps[i][1]);
   });
   chainGroup.position.set(-w / 2 - 0.02, -0.25, 0.6);
 
@@ -335,8 +365,9 @@ function tick(t) {
 
     // LED 페이드 (게임 모드의 glow는 LED 설정과 무관하게 켜짐 — 게임 신호이므로)
     const lit = (pressed && ledOn) || c.glow;
-    const goal = lit ? 2.6 : 0;
+    const goal = lit ? 3.6 : 0;
     c.light.intensity += (goal - c.light.intensity) * Math.min(1, dt * (lit ? 30 : 7));
+    c.glowPlane.material.opacity = (c.light.intensity / 3.6) * 0.85;
   }
 
   // 체인: idle 흔들림 + 누를 때 반동
@@ -471,5 +502,6 @@ export function applyVisuals(state) {
     c.decalTex.needsUpdate = true;
 
     c.light.color.set(ledColorHex);
+    c.glowPlane.material.color.set(ledColorHex);
   });
 }

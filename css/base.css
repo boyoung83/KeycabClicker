@@ -25,8 +25,8 @@ body {
   -webkit-tap-highlight-color: transparent;
   font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
   background:
-    radial-gradient(120% 90% at 50% 0%, #fff1f4 0%, #ffdde7 55%, #f3cfe3 100%);
-  color: #5a3a4a;
+    radial-gradient(120% 90% at 50% 0%, #3a2b52 0%, #241b38 55%, #150f24 100%);
+  color: #f0dce8;
 }
 
 button {

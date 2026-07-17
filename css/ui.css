@@ -10,7 +10,7 @@
 .counter-label {
   font-size: 14px;
   font-weight: 600;
-  opacity: 0.55;
+  color: #cbb3d8;
   letter-spacing: 0.06em;
 }
 .counter-line {
@@ -23,27 +23,21 @@
   font-size: 44px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
-  color: #e2557f;
-  text-shadow: 0 2px 0 rgba(255, 255, 255, 0.6);
+  color: #ff7fae;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 .reset-mini {
   pointer-events: auto;
-  min-width: 34px;
-  height: 34px;
-  padding: 0 8px;
-  border-radius: 17px;
-  background: rgba(255, 255, 255, 0.6);
-  color: #b06a88;
-  font-size: 19px;
-  font-weight: 700;
-  box-shadow: 0 1px 6px rgba(160, 90, 120, 0.15);
-  transition: background 120ms, color 120ms;
-}
-.reset-mini.confirm {
-  background: #d24a74;
-  color: #fff;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #e6c4d6;
   font-size: 13px;
+  font-weight: 700;
+  transition: background 120ms;
 }
+.reset-mini:active { background: rgba(255, 255, 255, 0.3); }
 .counter.pop { animation: pop 130ms ease-out; }
 @keyframes pop {
   0% { transform: scale(1); }
@@ -63,14 +57,29 @@
 #hudBig {
   font-size: 30px;
   font-weight: 800;
-  color: #8a4d68;
-  text-shadow: 0 2px 0 rgba(255, 255, 255, 0.6);
+  color: #ffeef6;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 #hudSub {
   font-size: 14px;
   font-weight: 600;
-  color: #b06a88;
+  color: #cbb3d8;
   margin-top: 2px;
+}
+.hud-rank {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 10px 22px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffeef6;
+  line-height: 1.7;
+  text-align: left;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ── 게임 모드 바 ── */
@@ -83,10 +92,10 @@
   gap: 6px;
   padding: 6px;
   border-radius: 22px;
-  background: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  box-shadow: 0 4px 16px rgba(160, 90, 120, 0.2);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
   z-index: 20;
 }
 .mode-bar button {
@@ -99,7 +108,7 @@
   border-radius: 16px;
   font-size: 12px;
   font-weight: 700;
-  color: #a06580;
+  color: #d5b8d0;
   transition: background 120ms, color 120ms, transform 100ms;
 }
 .mode-bar button .mi { font-size: 19px; }
@@ -118,11 +127,11 @@
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.14);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-  box-shadow: 0 2px 10px rgba(160, 90, 120, 0.18);
-  color: #b06a88;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+  color: #e6c4d6;
   z-index: 20;
   transition: transform 120ms ease;
 }
