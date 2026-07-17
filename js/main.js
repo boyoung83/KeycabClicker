@@ -2,7 +2,8 @@
 
 import { load, save } from './storage.js';
 import { buildScene, applyLayout, initPress, applyVisuals } from './scene3d.js';
-import { initSettings, updateSheetCount, isOpen } from './settings.js';
+import { initSettings, isOpen } from './settings.js';
+import { initGames, handleGamePress } from './games.js';
 import { playDown, playUp } from './audio/switches.js';
 import * as haptics from './haptics.js';
 
@@ -18,8 +19,8 @@ renderCount();
 
 initPress({
   isBlocked: isOpen,
-  onDown() {
-    // 지연에 민감한 순서: 소리 → 진동 → 화면 → 저장
+  onDown(i) {
+    // 지연에 민감한 순서: 소리 → 진동 → 화면 → 게임 → 저장
     if (state.soundOn) playDown(state.switchType);
     if (state.hapticsOn) haptics.tap(state.switchType);
     state.count += 1;
@@ -27,13 +28,15 @@ initPress({
     counterEl.classList.remove('pop');
     void counterEl.offsetWidth;
     counterEl.classList.add('pop');
-    updateSheetCount(state.count);
+    handleGamePress(i);
     save(state);
   },
   onUp() {
     if (state.soundOn) playUp(state.switchType);
   },
 });
+
+initGames(state, save);
 
 initSettings(
   state,
@@ -45,6 +48,31 @@ initSettings(
   },
   (switchType) => playDown(switchType), // 스위치 선택 시 미리듣기
 );
+
+// ── 카운터 초기화 (숫자 옆 버튼, 2단계 확인) ──
+const resetBtn = document.getElementById('resetBtn');
+let resetConfirming = false;
+let resetTimer = 0;
+resetBtn.addEventListener('click', () => {
+  if (!resetConfirming) {
+    resetConfirming = true;
+    resetBtn.classList.add('confirm');
+    resetBtn.textContent = '초기화?';
+    resetTimer = setTimeout(() => {
+      resetConfirming = false;
+      resetBtn.classList.remove('confirm');
+      resetBtn.textContent = '↺';
+    }, 3000);
+  } else {
+    clearTimeout(resetTimer);
+    resetConfirming = false;
+    resetBtn.classList.remove('confirm');
+    resetBtn.textContent = '↺';
+    state.count = 0;
+    renderCount();
+    save(state);
+  }
+});
 
 // 오프라인 지원 (단일 파일 배포본에선 window.__NO_SW__로 비활성화)
 if (!window.__NO_SW__ && 'serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {

@@ -15,13 +15,31 @@
 
 <div class="counter-wrap">
   <div class="counter-label">딸깍 횟수</div>
-  <div id="counter" class="counter" aria-live="polite">0</div>
+  <div class="counter-line">
+    <div id="counter" class="counter" aria-live="polite">0</div>
+    <button id="resetBtn" class="reset-mini" aria-label="카운터 초기화">↺</button>
+  </div>
+</div>
+
+<!-- 게임 HUD -->
+<div id="gameHud" class="game-hud" hidden>
+  <div id="hudBig"></div>
+  <div id="hudSub"></div>
 </div>
 
 <!-- 키캡을 누르는 히트 영역 전체 (Three.js 캔버스) -->
 <main id="stage" aria-label="키캡 키링 장난감">
   <canvas id="toy" aria-hidden="true"></canvas>
 </main>
+
+<!-- 게임 모드 선택 바 -->
+<nav id="modeBar" class="mode-bar" aria-label="게임 모드">
+  <button data-mode="free" class="selected"><span class="mi">🎹</span><span>자유</span></button>
+  <button data-mode="simon"><span class="mi">🧠</span><span>따라</span></button>
+  <button data-mode="mole"><span class="mi">⚡</span><span>반짝</span></button>
+  <button data-mode="speed"><span class="mi">⏱️</span><span>연타</span></button>
+  <button data-mode="rhythm"><span class="mi">🎵</span><span>리듬</span></button>
+</nav>
 
 <!-- 설정 버튼 -->
 <button id="settingsBtn" class="settings-btn" aria-label="설정 열기">
@@ -73,12 +91,6 @@
     <label class="toggle" id="hapticsRow"><input id="hapticsToggle" type="checkbox" checked><span></span> 진동</label>
   </div>
   <p class="hint">📱 아이폰은 무음 모드에서 소리가 나지 않아요. 무음 스위치를 꺼 주세요!</p>
-
-  <h2>카운터</h2>
-  <div class="counter-row">
-    <span id="sheetCount">0</span>
-    <button id="resetBtn" class="reset-btn">초기화</button>
-  </div>
 </section>
 
 <script type="module" src="js/main.js"></script>

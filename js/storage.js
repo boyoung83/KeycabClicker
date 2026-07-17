@@ -16,11 +16,19 @@ export const DEFAULTS = {
   ledColor: '#ffd166',                      // null이면 LED 끔
   soundOn: true,
   hapticsOn: true,
+  games: { simon: 0, mole: 0, speed: 0, rhythm: 0 },  // 게임별 최고 기록
 };
 
 function cloneDefaults() {
   return JSON.parse(JSON.stringify(DEFAULTS));
 }
+
+// 옛 반투명 팔레트 색상 이름 → 현 파스텔 팔레트 (로드 시 한 번 정규화)
+const LEGACY_COLOR = {
+  clear: 'white', pink: 'salmon', blue: 'sky',
+  yellow: 'lemon', purple: 'lavender', smoke: 'charcoal',
+};
+const normalizeColor = (id) => LEGACY_COLOR[id] || id;
 
 export function load() {
   try {
@@ -34,6 +42,8 @@ export function load() {
         const k = Array.isArray(parsed.keys) ? parsed.keys[i] : null;
         return k && k.design ? { ...def, ...k, design: { ...def.design, ...k.design } } : def;
       });
+      state.keys.forEach((k) => { k.capColor = normalizeColor(k.capColor); });
+      state.games = { ...cloneDefaults().games, ...(parsed.games || {}) };
       return state;
     }
     // v1(1구 버전)에서 마이그레이션: 기존 키캡 설정을 첫 번째 키로 이어받음
@@ -46,7 +56,7 @@ export function load() {
       state.ledColor = 'ledColor' in v1 ? v1.ledColor : state.ledColor;
       state.soundOn = v1.soundOn !== false;
       state.hapticsOn = v1.hapticsOn !== false;
-      if (v1.capColor) state.keys[0].capColor = v1.capColor;
+      if (v1.capColor) state.keys[0].capColor = normalizeColor(v1.capColor);
       if (v1.design) state.keys[0].design = v1.design;
       return state;
     }

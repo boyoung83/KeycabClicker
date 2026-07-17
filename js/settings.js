@@ -19,7 +19,6 @@ export function initSettings(state, onChange, previewSound) {
     _open = true;
     sheet.hidden = false;
     backdrop.hidden = false;
-    document.getElementById('sheetCount').textContent = state.count.toLocaleString('ko-KR');
     requestAnimationFrame(() => {
       sheet.classList.add('open');
       backdrop.classList.add('open');
@@ -83,7 +82,7 @@ export function initSettings(state, onChange, previewSound) {
     [...keyTabs.children].forEach((tab, i) => {
       tab.classList.toggle('selected', i === selectedKey);
       tab.innerHTML = `<small>키 ${i + 1}</small><span>${keyPreview(state.keys[i])}</span>`;
-      const sw = CAP_COLORS[state.keys[i].capColor] || CAP_COLORS.clear;
+      const sw = CAP_COLORS[state.keys[i].capColor] || CAP_COLORS.white;
       tab.style.setProperty('--tab-color', sw.swatch);
     });
   };
@@ -220,36 +219,6 @@ export function initSettings(state, onChange, previewSound) {
     });
   }
 
-  // ── 카운터 초기화 (2단계 확인) ──
-  const resetBtn = document.getElementById('resetBtn');
-  let confirming = false;
-  let confirmTimer = 0;
-  resetBtn.addEventListener('click', () => {
-    if (!confirming) {
-      confirming = true;
-      resetBtn.textContent = '한 번 더 누르면 초기화!';
-      resetBtn.classList.add('confirm');
-      confirmTimer = setTimeout(() => {
-        confirming = false;
-        resetBtn.textContent = '초기화';
-        resetBtn.classList.remove('confirm');
-      }, 3000);
-    } else {
-      clearTimeout(confirmTimer);
-      confirming = false;
-      resetBtn.textContent = '초기화';
-      resetBtn.classList.remove('confirm');
-      state.count = 0;
-      document.getElementById('sheetCount').textContent = '0';
-      onChange(state);
-    }
-  });
-}
-
-export function updateSheetCount(count) {
-  if (_open) {
-    document.getElementById('sheetCount').textContent = count.toLocaleString('ko-KR');
-  }
 }
 
 function syncSel(row, id) {

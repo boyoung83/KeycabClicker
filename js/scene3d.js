@@ -235,7 +235,7 @@ export function buildScene() {
     group.add(hit);
 
     toy.add(group);
-    caps.push({ group, mesh, decalCtx, decalTex, light, hit, y: CAP_REST, vy: 0, target: CAP_REST });
+    caps.push({ group, mesh, decalCtx, decalTex, light, hit, y: CAP_REST, vy: 0, target: CAP_REST, glow: false });
   }
 
   chainGroup = buildChain();
@@ -333,9 +333,10 @@ function tick(t) {
     c.y = Math.min(CAP_REST + 0.25, Math.max(CAP_PRESSED - 0.04, c.y + c.vy * dt));
     c.group.position.y = c.y;
 
-    // LED 페이드
-    const goal = pressed && ledOn ? 2.6 : 0;
-    c.light.intensity += (goal - c.light.intensity) * Math.min(1, dt * (pressed ? 30 : 7));
+    // LED 페이드 (게임 모드의 glow는 LED 설정과 무관하게 켜짐 — 게임 신호이므로)
+    const lit = (pressed && ledOn) || c.glow;
+    const goal = lit ? 2.6 : 0;
+    c.light.intensity += (goal - c.light.intensity) * Math.min(1, dt * (lit ? 30 : 7));
   }
 
   // 체인: idle 흔들림 + 누를 때 반동
@@ -428,6 +429,29 @@ export function initPress({ onDown, onUp, isBlocked }) {
 
   stage.addEventListener('contextmenu', (e) => e.preventDefault());
   stage.addEventListener('dblclick', (e) => e.preventDefault());
+}
+
+// ── 게임 모드용 훅 ──
+
+// 키 LED만 강제 점등/소등 (게임 목표 표시)
+export function setKeyGlow(i, on) {
+  if (caps[i]) caps[i].glow = on;
+}
+
+export function clearAllGlow() {
+  for (const c of caps) c.glow = false;
+}
+
+// 키를 프로그램으로 꾹 눌렀다 떼기 (시퀀스 재생용)
+export function flashKey(i, dur = 220) {
+  const c = caps[i];
+  if (!c) return;
+  c.target = CAP_PRESSED;
+  c.glow = true;
+  setTimeout(() => {
+    c.target = CAP_REST;
+    c.glow = false;
+  }, dur);
 }
 
 // ── 상태 → 3D 반영 ──

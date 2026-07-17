@@ -13,6 +13,12 @@
   opacity: 0.55;
   letter-spacing: 0.06em;
 }
+.counter-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
 .counter {
   font-size: 44px;
   font-weight: 800;
@@ -20,11 +26,87 @@
   color: #e2557f;
   text-shadow: 0 2px 0 rgba(255, 255, 255, 0.6);
 }
+.reset-mini {
+  pointer-events: auto;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 8px;
+  border-radius: 17px;
+  background: rgba(255, 255, 255, 0.6);
+  color: #b06a88;
+  font-size: 19px;
+  font-weight: 700;
+  box-shadow: 0 1px 6px rgba(160, 90, 120, 0.15);
+  transition: background 120ms, color 120ms;
+}
+.reset-mini.confirm {
+  background: #d24a74;
+  color: #fff;
+  font-size: 13px;
+}
 .counter.pop { animation: pop 130ms ease-out; }
 @keyframes pop {
   0% { transform: scale(1); }
   40% { transform: scale(1.16); }
   100% { transform: scale(1); }
+}
+
+/* ── 게임 HUD ── */
+.game-hud {
+  position: fixed;
+  top: calc(max(18px, env(safe-area-inset-top)) + 96px);
+  left: 0; right: 0;
+  text-align: center;
+  pointer-events: none;
+  z-index: 5;
+}
+#hudBig {
+  font-size: 30px;
+  font-weight: 800;
+  color: #8a4d68;
+  text-shadow: 0 2px 0 rgba(255, 255, 255, 0.6);
+}
+#hudSub {
+  font-size: 14px;
+  font-weight: 600;
+  color: #b06a88;
+  margin-top: 2px;
+}
+
+/* ── 게임 모드 바 ── */
+.mode-bar {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: max(16px, env(safe-area-inset-bottom));
+  display: flex;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 4px 16px rgba(160, 90, 120, 0.2);
+  z-index: 20;
+}
+.mode-bar button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  min-width: 56px;
+  padding: 7px 6px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #a06580;
+  transition: background 120ms, color 120ms, transform 100ms;
+}
+.mode-bar button .mi { font-size: 19px; }
+.mode-bar button.selected {
+  background: #e2557f;
+  color: #fff;
+  transform: scale(1.04);
 }
 
 /* ── 설정 버튼 ── */
