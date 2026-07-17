@@ -1,4 +1,4 @@
-// 키캡 비주얼 컨트롤러 + 누름 상태 머신 (4구)
+// 키캡 비주얼 컨트롤러 + 누름 상태 머신 (4구, 실물 사진 기반)
 // - Pointer Events만 사용 (touch/mouse 이중 발화 원천 차단)
 // - setPointerCapture로 빠른 연타에서도 pointerup을 놓치지 않음
 // - 키마다 독립: 멀티터치로 여러 키 동시 누름 가능, pointerdown마다 소리/카운트 발생
@@ -8,26 +8,34 @@ import { CAP_COLORS } from './designs.js';
 
 const stage = document.getElementById('stage');
 const toy = document.getElementById('toy');
-const keyring = document.getElementById('keyring');
+const chain = document.getElementById('chain');
 const keysG = document.getElementById('keys');
-const plate = document.getElementById('plate');
-const shadow = document.getElementById('toyShadow');
 
 export const KEY_COUNT = 4;
 
-// 키 유닛 로컬 좌표: 캡 x 74..286, 스위치 y 296..392
+// 구버전 저장값(반투명 팔레트 이름) → 새 파스텔 팔레트 매핑
+const LEGACY_COLOR = {
+  clear: 'white', pink: 'salmon', blue: 'sky',
+  yellow: 'lemon', purple: 'lavender', smoke: 'charcoal',
+};
+
+// 키 유닛 로컬 좌표: 캡 x 14..206 (폭 192), 슬롯 y 152..208
 const LAYOUTS = {
   row: {
-    pos: [[0, 0], [236, 0], [472, 0], [708, 0]],
-    viewBox: '30 0 990 430',
-    plate: { x: 58, y: 322, width: 944, height: 86, rx: 18 },
-    shadow: { cx: 530, cy: 420, rx: 480, ry: 12 },
+    pos: [[0, 0], [200, 0], [400, 0], [600, 0]],
+    viewBox: '-115 -135 965 485',
+    caseTop: { x: -8, y: 44, width: 836, height: 196 },
+    caseWall: { x: -8, y: 220, width: 836, height: 66 },
+    shadowWide: { cx: 410, cy: 300, rx: 470, ry: 18 },
+    shadowTight: { cx: 410, cy: 294, rx: 430, ry: 10 },
   },
   grid: {
-    pos: [[0, 0], [240, 0], [0, 300], [240, 300]],
-    viewBox: '20 0 550 730',
-    plate: { x: 58, y: 322, width: 484, height: 378, rx: 26 },
-    shadow: { cx: 300, cy: 714, rx: 230, ry: 14 },
+    pos: [[0, 0], [200, 0], [0, 180], [200, 180]],
+    viewBox: '-115 -135 565 625',
+    caseTop: { x: -8, y: 44, width: 436, height: 374 },
+    caseWall: { x: -8, y: 386, width: 436, height: 70 },
+    shadowWide: { cx: 210, cy: 460, rx: 270, ry: 20 },
+    shadowTight: { cx: 210, cy: 454, rx: 230, ry: 11 },
   },
 };
 
@@ -47,8 +55,16 @@ export function applyLayout(layout) {
   [...keysG.children].forEach((g, i) =>
     g.setAttribute('transform', `translate(${L.pos[i][0]},${L.pos[i][1]})`));
   toy.setAttribute('viewBox', L.viewBox);
-  for (const [k, v] of Object.entries(L.plate)) plate.setAttribute(k, v);
-  for (const [k, v] of Object.entries(L.shadow)) shadow.setAttribute(k, v);
+  const setAttrs = (id, attrs) => {
+    const el = document.getElementById(id);
+    for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+  };
+  setAttrs('caseTop', L.caseTop);
+  setAttrs('caseGlossRect', L.caseTop);
+  setAttrs('caseEdge', L.caseTop);
+  setAttrs('caseWall', L.caseWall);
+  setAttrs('shadowWide', L.shadowWide);
+  setAttrs('shadowTight', L.shadowTight);
   stage.classList.toggle('layout-row', L === LAYOUTS.row);
   stage.classList.toggle('layout-grid', L !== LAYOUTS.row);
 }
@@ -67,17 +83,17 @@ export function initPress({ onDown, onUp, isBlocked }) {
   function press(i) {
     activeCount[i] += 1;
     keyEl(i).classList.add('is-pressed');
-    keyring.classList.remove('kick');
-    void keyring.getBoundingClientRect();
-    keyring.classList.add('kick');
+    chain.classList.remove('kick');
+    void chain.getBoundingClientRect();
+    chain.classList.add('kick');
     onDown(i);
   }
 
-  function release(i, silent = false) {
+  function release(i) {
     activeCount[i] = Math.max(0, activeCount[i] - 1);
     if (activeCount[i] === 0) {
       keyEl(i).classList.remove('is-pressed');
-      if (!silent) onUp(i);
+      onUp(i);
     }
   }
 
@@ -139,9 +155,6 @@ export function initPress({ onDown, onUp, isBlocked }) {
 export function applyVisuals(state) {
   const root = document.documentElement.style;
 
-  const stemColors = { blue: '#2f9dff', brown: '#9d7362', red: '#ff5f5f' };
-  root.setProperty('--stem-color', stemColors[state.switchType] || stemColors.blue);
-
   if (state.ledColor) {
     root.setProperty('--led-color', state.ledColor);
     stage.classList.remove('led-off');
@@ -153,9 +166,10 @@ export function applyVisuals(state) {
     const g = keysG.children[i];
     if (!g) return;
 
-    const cap = CAP_COLORS[keyState.capColor] || CAP_COLORS.clear;
-    g.style.setProperty('--cap-tint', cap.tint);
+    const colorId = CAP_COLORS[keyState.capColor] ? keyState.capColor : LEGACY_COLOR[keyState.capColor];
+    const cap = CAP_COLORS[colorId] || CAP_COLORS.white;
     g.style.setProperty('--cap-face', cap.face);
+    g.style.setProperty('--cap-side', cap.side);
 
     const text = g.querySelector('.design-text');
     const pattern = g.querySelector('.design-pattern');
@@ -168,11 +182,11 @@ export function applyVisuals(state) {
       pattern.setAttribute('visibility', 'hidden');
       text.textContent = d.value || '';
       if (d.type === 'text') {
-        text.setAttribute('fill', d.color || '#e2557f');
-        text.setAttribute('font-size', d.value && d.value.length > 1 ? '64' : '92');
+        text.setAttribute('fill', d.color || '#ffffff');
+        text.setAttribute('font-size', d.value && d.value.length > 1 ? '52' : '68');
       } else {
         text.removeAttribute('fill');
-        text.setAttribute('font-size', '92');
+        text.setAttribute('font-size', '68');
       }
     }
   });

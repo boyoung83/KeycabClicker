@@ -3,11 +3,10 @@
 
 :root {
   /* JS가 상태에 따라 갱신하는 테마 변수 */
-  --cap-tint: rgba(236, 242, 255, 0.42);
-  --cap-face: rgba(248, 250, 255, 0.34);
-  --stem-color: #2f9dff;
+  --cap-face: #f6f4ee;
+  --cap-side: #d9d4c7;
   --led-color: #ffd166;
-  --travel: 15px;
+  --travel: 13px;
 }
 
 html, body {
@@ -26,7 +25,7 @@ body {
   -webkit-tap-highlight-color: transparent;
   font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
   background:
-    radial-gradient(120% 90% at 50% 0%, #fff3f6 0%, #ffe3ec 45%, #f3d9ff 100%);
+    radial-gradient(120% 90% at 50% 0%, #fff1f4 0%, #ffdde7 55%, #f3cfe3 100%);
   color: #5a3a4a;
 }
 

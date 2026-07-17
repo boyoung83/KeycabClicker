@@ -7,11 +7,11 @@ export const DEFAULTS = {
   count: 0,
   switchType: 'blue',                       // 'blue' | 'brown' | 'red'
   layout: 'grid',                           // 'row' (1×4) | 'grid' (2×2)
-  keys: [                                   // 키 4개 각각의 색/도안
-    { capColor: 'clear',  design: { type: 'emoji', value: '🐰' } },
-    { capColor: 'pink',   design: { type: 'emoji', value: '🍓' } },
-    { capColor: 'mint',   design: { type: 'emoji', value: '⭐' } },
-    { capColor: 'yellow', design: { type: 'emoji', value: '❤️' } },
+  keys: [                                   // 키 4개 각각의 색/도안 (실물 사진의 파스텔 4색)
+    { capColor: 'sky',      design: { type: 'emoji', value: '🐰' } },
+    { capColor: 'salmon',   design: { type: 'emoji', value: '🍓' } },
+    { capColor: 'mint',     design: { type: 'emoji', value: '⭐' } },
+    { capColor: 'lavender', design: { type: 'emoji', value: '❤️' } },
   ],
   ledColor: '#ffd166',                      // null이면 LED 끔
   soundOn: true,

@@ -15,15 +15,15 @@ export const PATTERN_PRESETS = [
   { id: 'rainbow', label: '무지개' },
 ];
 
-// 키캡 색상 팔레트: 스와치 표시색 + 캡 옆면/윗면의 반투명 틴트
+// 키캡 색상 팔레트 (실물 사진 기준 불투명 파스텔): face = 윗면, side = 스커트(옆면)
 export const CAP_COLORS = {
-  clear:  { label: '투명',   swatch: '#eef2fb', tint: 'rgba(236,242,255,0.42)', face: 'rgba(248,250,255,0.34)' },
-  pink:   { label: '핑크',   swatch: '#ff9dbf', tint: 'rgba(255,120,170,0.42)', face: 'rgba(255,150,190,0.34)' },
-  blue:   { label: '블루',   swatch: '#8ec5ff', tint: 'rgba(90,160,255,0.42)',  face: 'rgba(130,185,255,0.34)' },
-  mint:   { label: '민트',   swatch: '#8fe6bd', tint: 'rgba(80,210,160,0.42)',  face: 'rgba(120,225,180,0.34)' },
-  yellow: { label: '옐로우', swatch: '#ffd975', tint: 'rgba(255,200,80,0.42)',  face: 'rgba(255,215,120,0.34)' },
-  purple: { label: '퍼플',   swatch: '#c9a8ff', tint: 'rgba(170,120,255,0.42)', face: 'rgba(195,160,255,0.34)' },
-  smoke:  { label: '스모크', swatch: '#9aa0ad', tint: 'rgba(60,65,80,0.45)',    face: 'rgba(80,86,102,0.38)' },
+  white:    { label: '화이트',  swatch: '#f3f1ea', face: '#f6f4ee', side: '#d9d4c7' },
+  sky:      { label: '하늘',    swatch: '#5fcbe8', face: '#63cfe9', side: '#39a9cb' },
+  salmon:   { label: '살구',    swatch: '#f7a58f', face: '#f8ab95', side: '#e58165' },
+  mint:     { label: '민트',    swatch: '#a9e8c4', face: '#aeeac8', side: '#7fcda1' },
+  lavender: { label: '라벤더',  swatch: '#c7b6e4', face: '#cabae6', side: '#a48ed0' },
+  lemon:    { label: '레몬',    swatch: '#f9e08a', face: '#fae393', side: '#e3c25e' },
+  charcoal: { label: '차콜',    swatch: '#5a5f6a', face: '#60656f', side: '#41454e' },
 };
 
 export const LED_COLORS = [
@@ -35,4 +35,4 @@ export const LED_COLORS = [
   { id: 'off',    color: null },      // LED 끄기
 ];
 
-export const TEXT_COLORS = ['#e2557f', '#3f7de0', '#2fa46a', '#e09b2f', '#8a5fd6', '#454a55'];
+export const TEXT_COLORS = ['#ffffff', '#e2557f', '#3f7de0', '#2fa46a', '#8a5fd6', '#454a55'];

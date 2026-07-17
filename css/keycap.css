@@ -11,10 +11,10 @@
 #toy {
   height: auto;
   overflow: visible;
-  margin-top: 4vh;
+  margin-top: 2vh;
 }
-#stage.layout-grid #toy { width: min(88vmin, 470px); }
-#stage.layout-row #toy { width: min(96vw, 920px); margin-top: 0; }
+#stage.layout-grid #toy { width: min(90vmin, 480px); }
+#stage.layout-row #toy { width: min(96vw, 940px); margin-top: 0; }
 
 /* ── 누름 애니메이션: 손가락을 따라간다 (고정 길이 애니메이션 아님) ── */
 .cap-group {
@@ -27,36 +27,35 @@
   transition: transform 45ms cubic-bezier(0.3, 0.7, 0.4, 1);  /* 바닥까지 빠르게 */
 }
 
-/* ── LED 글로우: 누르는 동안 켜지고 잔광을 남기며 꺼짐 ── */
+/* 캡 접촉 그림자: 눌리면 캡이 케이스에 붙으며 진해짐 */
+.cap-ao { transition: opacity 90ms ease; }
+.key.is-pressed .cap-ao { opacity: 0.3; }
+
+/* ── LED 글로우: 캡 둘레 헤일로, 누르는 동안 켜지고 잔광을 남기며 꺼짐 ── */
 .led-glow {
   opacity: 0;
   transition: opacity 350ms ease-out;
 }
 .key.is-pressed .led-glow { opacity: 0.95; transition: opacity 40ms ease-in; }
-.key.is-pressed .led-glow-cap { opacity: 0.7; }
 #stage.led-off .led-glow { opacity: 0 !important; }
 
-/* ── 키링: 천천히 흔들리는 idle + 누를 때 반동 ── */
-#keyring {
+/* ── 체인: 천천히 흔들리는 idle + 누를 때 반동 ── */
+#chain {
   transform-box: fill-box;
-  transform-origin: 30% 0%;
+  transform-origin: 22% 6%;
   animation: sway 4.2s ease-in-out infinite;
 }
 @keyframes sway {
   0%, 100% { transform: rotate(-2deg); }
-  50%      { transform: rotate(2.2deg); }
+  50%      { transform: rotate(2.4deg); }
 }
-#keyring.kick { animation: kick 380ms cubic-bezier(0.3, 1.6, 0.5, 1); }
+#chain.kick { animation: kick 380ms cubic-bezier(0.3, 1.6, 0.5, 1); }
 @keyframes kick {
   0%   { transform: rotate(0deg); }
-  30%  { transform: rotate(4.5deg); }
+  30%  { transform: rotate(5deg); }
   65%  { transform: rotate(-2.5deg); }
   100% { transform: rotate(0deg); }
 }
 @media (prefers-reduced-motion: reduce) {
-  #keyring { animation: none; }
+  #chain { animation: none; }
 }
-
-/* 광택: 눌릴 때 빛이 미세하게 흐르는 느낌 */
-.gloss { transition: opacity 100ms ease; }
-.key.is-pressed .gloss { opacity: 0.85; }
