@@ -41,6 +41,8 @@ let currentLayout = LAYOUTS.grid;
 
 // ── 모듈 상태 ──
 let renderer, scene, camera, toy, chainGroup, caseMesh, caseGeoCache = {};
+let keyLight, bounceLight;
+let dimGoal = 0, dimCur = 0;      // 게임용 톤다운 (0=평소, 1=어둡게)
 const caps = [];          // { group, mesh, decal, decalCtx, decalTex, light, y, vy, target, hit }
 let ledColorHex = '#ffd166';
 let ledOn = true;
@@ -185,19 +187,19 @@ export function buildScene() {
   camera = new THREE.PerspectiveCamera(30, 1, 0.1, 60);
 
   // 키 라이트 (부드러운 그림자)
-  const key = new THREE.DirectionalLight(0xfff4ec, 2.2);
-  key.position.set(3.5, 7, 4.5);
-  key.castShadow = true;
-  key.shadow.mapSize.set(2048, 2048);
-  key.shadow.camera.left = -7; key.shadow.camera.right = 7;
-  key.shadow.camera.top = 7; key.shadow.camera.bottom = -7;
-  key.shadow.radius = 7;
-  key.shadow.bias = -0.0004;
-  scene.add(key);
+  keyLight = new THREE.DirectionalLight(0xfff4ec, 2.2);
+  keyLight.position.set(3.5, 7, 4.5);
+  keyLight.castShadow = true;
+  keyLight.shadow.mapSize.set(2048, 2048);
+  keyLight.shadow.camera.left = -7; keyLight.shadow.camera.right = 7;
+  keyLight.shadow.camera.top = 7; keyLight.shadow.camera.bottom = -7;
+  keyLight.shadow.radius = 7;
+  keyLight.shadow.bias = -0.0004;
+  scene.add(keyLight);
 
   // 배경(어두운 보라)에 맞춘 바운스 광
-  const bounce = new THREE.HemisphereLight(0xcdb8ee, 0x241b38, 0.4);
-  scene.add(bounce);
+  bounceLight = new THREE.HemisphereLight(0xcdb8ee, 0x241b38, 0.4);
+  scene.add(bounceLight);
 
   toy = new THREE.Group();
   scene.add(toy);
@@ -220,6 +222,7 @@ export function buildScene() {
 
     const mesh = new THREE.Mesh(geo, capMaterial('#eeeeee'));
     mesh.castShadow = true;
+    mesh.userData.keyIndex = i;
     group.add(mesh);
 
     // 윗면 데칼 (도안)
@@ -254,12 +257,13 @@ export function buildScene() {
     glowPlane.renderOrder = 2;
     toy.add(glowPlane);
 
-    // 히트 박스 (아이 손가락용, 넉넉하게)
+    // 히트 박스: 캡보다 약간만 크게 — 크게 잡으면 앞줄 박스가 뒷줄 캡을 가려
+    // 뒷줄을 눌러도 앞줄로 판정되는 버그가 생긴다 (캡 메시도 판정에 함께 사용)
     const hit = new THREE.Mesh(
-      new THREE.BoxGeometry(PITCH, CAP_H + CAP_REST + 0.6, PITCH),
+      new THREE.BoxGeometry(CAP_W + 0.28, CAP_H + 0.3, CAP_W + 0.36),
       new THREE.MeshBasicMaterial({ visible: false }),
     );
-    hit.position.y = (CAP_H + CAP_REST) / 2;
+    hit.position.y = CAP_H / 2;
     hit.userData.keyIndex = i;
     group.add(hit);
 
@@ -274,7 +278,7 @@ export function buildScene() {
   resize();
   renderer.setAnimationLoop(tick);
 
-  // 테스트/디버깅용: 각 키캡의 화면 좌표
+  // 테스트/디버깅용: 각 키캡의 화면 좌표 + 좌표→키 판정
   window.__toyDebug = {
     capsScreen() {
       const r = canvas.getBoundingClientRect();
@@ -283,6 +287,14 @@ export function buildScene() {
         c.mesh.localToWorld(v).project(camera);
         return { x: r.left + (v.x + 1) / 2 * r.width, y: r.top + (1 - v.y) / 2 * r.height };
       });
+    },
+    rayAt(x, y) {
+      const r = canvas.getBoundingClientRect();
+      const ndc = new THREE.Vector2(((x - r.left) / r.width) * 2 - 1, -((y - r.top) / r.height) * 2 + 1);
+      const ray = new THREE.Raycaster();
+      ray.setFromCamera(ndc, camera);
+      const hits = ray.intersectObjects(caps.flatMap((c) => [c.mesh, c.hit]), false);
+      return hits.length ? hits[0].object.userData.keyIndex : -1;
     },
   };
 }
@@ -305,6 +317,8 @@ function updateCamera() {
   );
   const dir = new THREE.Vector3(...C.dir).normalize();
   const target = new THREE.Vector3(...C.target);
+  // 세로 화면: 상단 HUD 글씨와 겹치지 않게 장난감을 화면 아래쪽으로 내림
+  if (camera.aspect < 0.8) target.y += 1.3;
   camera.position.copy(target).addScaledVector(dir, dist);
   camera.lookAt(target);
 }
@@ -352,19 +366,27 @@ function tick(t) {
   const dt = Math.min(0.033, (t - lastT) / 1000 || 0.016);
   lastT = t;
 
+  // 게임용 톤다운: 조명을 낮춰 LED 반짝임이 도드라지게
+  dimCur += (dimGoal - dimCur) * Math.min(1, dt * 5);
+  keyLight.intensity = 2.2 * (1 - 0.72 * dimCur);
+  bounceLight.intensity = 0.4 * (1 - 0.6 * dimCur);
+  scene.environmentIntensity = 0.42 * (1 - 0.65 * dimCur);
+
   for (const c of caps) {
-    const pressed = c.target === CAP_PRESSED;
+    const flashing = performance.now() < (c.flashUntil || 0);   // 시연 누름이 사용자 입력보다 우선
+    const target = flashing ? CAP_PRESSED : c.target;
+    const pressed = target === CAP_PRESSED;
     const k = pressed ? 1400 : 600;          // 내려갈 땐 빠르고 단단하게
     const zeta = pressed ? 1.0 : 0.42;       // 올라올 땐 살짝 튕김
     const damp = 2 * Math.sqrt(k) * zeta;
     // 반암시적 적분 + 지수 감쇠: 프레임이 길어져도 발산하지 않음
-    c.vy += k * (c.target - c.y) * dt;
+    c.vy += k * (target - c.y) * dt;
     c.vy *= Math.exp(-damp * dt);
     c.y = Math.min(CAP_REST + 0.25, Math.max(CAP_PRESSED - 0.04, c.y + c.vy * dt));
     c.group.position.y = c.y;
 
-    // LED 페이드 (게임 모드의 glow는 LED 설정과 무관하게 켜짐 — 게임 신호이므로)
-    const lit = (pressed && ledOn) || c.glow;
+    // LED 페이드 (게임 모드의 glow/시연은 LED 설정과 무관하게 켜짐 — 게임 신호이므로)
+    const lit = (pressed && ledOn) || c.glow || flashing;
     const goal = lit ? 3.6 : 0;
     c.light.intensity += (goal - c.light.intensity) * Math.min(1, dt * (lit ? 30 : 7));
     c.glowPlane.material.opacity = (c.light.intensity / 3.6) * 0.85;
@@ -387,11 +409,12 @@ export function initPress({ onDown, onUp, isBlocked }) {
   const byPointer = new Map();               // pointerId → keyIndex
   const activeCount = new Array(KEY_COUNT).fill(0);
 
+  const targets = caps.flatMap((c) => [c.mesh, c.hit]);
   const keyFromEvent = (e) => {
     const r = canvas.getBoundingClientRect();
     ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
     ray.setFromCamera(ndc, camera);
-    const hits = ray.intersectObjects(caps.map((c) => c.hit), false);
+    const hits = ray.intersectObjects(targets, false);
     return hits.length ? hits[0].object.userData.keyIndex : -1;
   };
 
@@ -464,6 +487,12 @@ export function initPress({ onDown, onUp, isBlocked }) {
 
 // ── 게임 모드용 훅 ──
 
+// 게임 중 장면 톤다운 (LED가 잘 보이도록)
+export function setDim(on) {
+  dimGoal = on ? 1 : 0;
+  document.body.classList.toggle('game-dim', !!on);
+}
+
 // 키 LED만 강제 점등/소등 (게임 목표 표시)
 export function setKeyGlow(i, on) {
   if (caps[i]) caps[i].glow = on;
@@ -474,15 +503,12 @@ export function clearAllGlow() {
 }
 
 // 키를 프로그램으로 꾹 눌렀다 떼기 (시퀀스 재생용)
+// setTimeout으로 상태를 되돌리는 대신 만료 시각만 기록 — 사용자 입력과
+// 어떤 순서로 겹쳐도 시연이 사라지지 않는다 (렌더 루프에서 판정)
 export function flashKey(i, dur = 220) {
   const c = caps[i];
   if (!c) return;
-  c.target = CAP_PRESSED;
-  c.glow = true;
-  setTimeout(() => {
-    c.target = CAP_REST;
-    c.glow = false;
-  }, dur);
+  c.flashUntil = performance.now() + dur;
 }
 
 // ── 상태 → 3D 반영 ──

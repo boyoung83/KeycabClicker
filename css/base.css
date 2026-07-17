@@ -39,3 +39,17 @@ button {
 }
 
 input { font: inherit; }
+
+/* 게임 톤다운: 배경도 함께 어두워짐 (캔버스 뒤 오버레이) */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: #0b0715;
+  opacity: 0;
+  transition: opacity 450ms ease;
+  pointer-events: none;
+  z-index: 0;
+}
+body.game-dim::before { opacity: 0.55; }
+#stage { z-index: 1; }

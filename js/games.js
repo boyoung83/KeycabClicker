@@ -2,7 +2,7 @@
 // - 모든 게임은 run 토큰으로 타이머를 무효화 (모드 전환 시 즉시 중단)
 // - 게임이 끝난 뒤(phase 'over') 아무 키나 누르면 같은 게임 재시작
 
-import { flashKey, setKeyGlow, clearAllGlow, KEY_COUNT } from './scene3d.js';
+import { flashKey, setKeyGlow, clearAllGlow, setDim, KEY_COUNT } from './scene3d.js';
 import { playDown, playUp } from './audio/switches.js';
 import { playFx } from './audio/fx.js';
 
@@ -15,6 +15,7 @@ const hud = document.getElementById('gameHud');
 const hudBig = document.getElementById('hudBig');
 const hudSub = document.getElementById('hudSub');
 const hudRank = document.getElementById('hudRank');
+const startBtn = document.getElementById('startBtn');
 const modeBar = document.getElementById('modeBar');
 
 const rand4 = () => Math.floor(Math.random() * KEY_COUNT);
@@ -49,7 +50,7 @@ function ghostPress(k, dur = 240) {
 }
 
 /* ══════════ 따라 누르기 (사이먼) ══════════ */
-let seq = [], seqIdx = 0;
+let seq = [], seqIdx = 0, replayTimer = 0;
 
 async function simonStart() {
   const my = ++run;
@@ -57,40 +58,59 @@ async function simonStart() {
   phase = 'show';
   setHud('잘 보고 따라 누르세요! 🧠', `최고 기록 ${best('simon')}단계`);
   if (!await pause(1100, my)) return;
-  simonNext(my);
+  seq.push(rand4());
+  simonPlay(my);
 }
 
-async function simonNext(my) {
-  seq.push(rand4());
+// 시퀀스 시연 → 입력 대기. 입력이 한동안 없으면 자동으로 다시 보여줌
+async function simonPlay(my, label = '잘 보세요...') {
+  clearTimeout(replayTimer);
   const round = seq.length;
   phase = 'show';
-  setHud(`${round}단계`, '잘 보세요...');
-  if (!await pause(650, my)) return;
-  const gap = Math.max(340, 640 - round * 25);
+  setHud(`${round}단계`, label);
+  if (!await pause(700, my)) return;
+  const gap = Math.max(400, 700 - round * 25);
   for (const k of seq) {
     if (my !== run) return;
-    ghostPress(k, Math.min(260, gap - 90));
+    ghostPress(k, Math.min(320, gap - 120));
     if (!await pause(gap, my)) return;
   }
   seqIdx = 0;
   phase = 'play';
   setHud(`${round}단계 — 따라 누르세요!`, `최고 기록 ${best('simon')}단계`);
+  armReplay(my);
+}
+
+function armReplay(my) {
+  clearTimeout(replayTimer);
+  replayTimer = setTimeout(() => {
+    if (my === run && mode === 'simon' && phase === 'play') {
+      simonPlay(my, '다시 보여줄게요! 👀');
+    }
+  }, 6000);
 }
 
 function simonPress(i) {
   if (phase !== 'play') return;
   if (i === seq[seqIdx]) {
     seqIdx += 1;
+    armReplay(run);              // 입력이 이어지는 동안 재시연 타이머 리셋
     if (seqIdx === seq.length) {
+      clearTimeout(replayTimer);
       phase = 'show';
       playFx('success');
       const round = seq.length;
       const isNew = updateBest('simon', round);
       setHud(`${round}단계 성공! 🎉`, isNew ? '✨ 최고 기록!' : '');
       const my = run;
-      setTimeout(() => { if (my === run) simonNext(my); }, 1000);
+      setTimeout(() => {
+        if (my !== run) return;
+        seq.push(rand4());
+        simonPlay(my);
+      }, 1000);
     }
   } else {
+    clearTimeout(replayTimer);
     phase = 'over';
     playFx('fail');
     setHud(`아쉬워요! ${seq.length - 1}단계까지 성공`, '아무 키나 누르면 다시 시작');
@@ -156,11 +176,10 @@ const RANK_MEDALS = ['🥇', '🥈', '🥉', '4위', '5위'];
 
 function showRanks() {
   const ranks = state.games.speedRanks;
-  if (!ranks.length) {
-    hudRank.innerHTML = '<div>아직 기록이 없어요!</div>';
-  } else {
-    hudRank.innerHTML = ranks.map((s, i) => `<div>${RANK_MEDALS[i]} ${s}번</div>`).join('');
-  }
+  const rows = ranks.length
+    ? ranks.map((s, i) => `<div>${RANK_MEDALS[i]} ${s}번</div>`).join('')
+    : '<div>기록 없음</div>';
+  hudRank.innerHTML = `<b>🏆 랭킹</b>${rows}`;
   hudRank.hidden = false;
 }
 
@@ -171,13 +190,15 @@ function speedEnter() {
   ++run;
   clearInterval(speedTicker);
   phase = 'ready';
-  setHud('10초 연타 챌린지 ⏱️', '아무 키나 누르면 시작!');
+  setHud('10초 연타 챌린지 ⏱️', '준비되면 시작 버튼!');
   showRanks();
+  startBtn.textContent = '▶ 시작!';
+  startBtn.hidden = false;
 }
 
 async function speedRun() {
   const my = ++run;
-  hideRanks();
+  startBtn.hidden = true;
   phase = 'show';
   for (const n of ['3', '2', '1']) {
     setHud(n, '10초 동안 최대한 많이! ⏱️');
@@ -204,14 +225,15 @@ async function speedRun() {
       saveState(state);
       const place = ranks.indexOf(speedCount) + 1;
       setHud(`끝! ${speedCount}번 딸깍! 🎉`,
-        place >= 1 ? `${RANK_MEDALS[place - 1]} ${place}위 기록! 아무 키나 누르면 다시` : '아무 키나 누르면 다시 시작');
+        place >= 1 ? `${RANK_MEDALS[place - 1]} ${place}위 기록!` : '수고했어요!');
       showRanks();
+      startBtn.textContent = '▶ 다시 도전!';
+      startBtn.hidden = false;
     }
   }, 100);
 }
 
 function speedPress() {
-  if (phase === 'ready') { speedRun(); return; }
   if (phase === 'play') speedCount += 1;
 }
 
@@ -292,11 +314,15 @@ const PRESSERS = { simon: simonPress, mole: molePress, speed: speedPress, rhythm
 export function setMode(m) {
   run += 1;                    // 진행 중인 모든 타이머 무효화
   clearTimeout(moleTimer);
+  clearTimeout(replayTimer);
   clearInterval(speedTicker);
   clearAllGlow();
   hideRanks();
   mode = m;
   phase = 'idle';
+  startBtn.hidden = true;
+  // 불빛을 봐야 하는 게임은 장면을 톤다운해 반짝임이 잘 보이게
+  setDim(m === 'simon' || m === 'mole' || m === 'rhythm');
   [...modeBar.children].forEach((b) => b.classList.toggle('selected', b.dataset.mode === m));
   if (m === 'free') {
     hud.hidden = true;
@@ -307,7 +333,11 @@ export function setMode(m) {
 
 export function handleGamePress(i) {
   if (mode === 'free') return;
-  if (phase === 'over') { STARTERS[mode](); return; }
+  if (phase === 'over') {
+    if (mode === 'speed') return;   // 연타는 전용 시작 버튼으로만 재시작
+    STARTERS[mode]();
+    return;
+  }
   PRESSERS[mode](i);
 }
 
@@ -316,6 +346,9 @@ export function initGames(appState, save) {
   saveState = save;
   [...modeBar.children].forEach((b) => {
     b.addEventListener('click', () => setMode(b.dataset.mode));
+  });
+  startBtn.addEventListener('click', () => {
+    if (mode === 'speed' && (phase === 'ready' || phase === 'over')) speedRun();
   });
   // 테스트/디버깅용
   window.__gameDebug = () => ({ mode, phase, seq: [...seq], moleTarget, speedCount, rhythmScore });

@@ -55,7 +55,7 @@
   z-index: 5;
 }
 #hudBig {
-  font-size: 30px;
+  font-size: 25px;
   font-weight: 800;
   color: #ffeef6;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
@@ -66,20 +66,45 @@
   color: #cbb3d8;
   margin-top: 2px;
 }
+.start-btn {
+  pointer-events: auto;
+  margin-top: 14px;
+  padding: 13px 36px;
+  border-radius: 26px;
+  background: #e2557f;
+  color: #fff;
+  font-size: 19px;
+  font-weight: 800;
+  box-shadow: 0 4px 16px rgba(226, 85, 127, 0.5);
+  transition: transform 100ms;
+}
+.start-btn:active { transform: scale(0.94); }
+
+/* 연타 랭킹: 화면 오른쪽 가장자리에 상시 표시 (장난감을 가리지 않게 작게) */
 .hud-rank {
-  display: inline-block;
-  margin-top: 10px;
-  padding: 10px 22px;
-  border-radius: 16px;
+  position: fixed;
+  right: 8px;
+  top: 31%;
+  z-index: 6;
+  padding: 9px 12px;
+  border-radius: 14px;
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 700;
   color: #ffeef6;
-  line-height: 1.7;
+  line-height: 1.75;
   text-align: left;
   font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+.hud-rank b {
+  display: block;
+  font-size: 11px;
+  color: #cbb3d8;
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
 }
 
 /* ── 게임 모드 바 ── */
