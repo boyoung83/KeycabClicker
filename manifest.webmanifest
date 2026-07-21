@@ -1,13 +1,26 @@
 {
-  "name": "키캡 키링",
+  "id": "/KeycabClicker/",
+  "name": "키캡 키링 — 딸깍딸깍",
   "short_name": "키캡키링",
-  "description": "딸깍딸깍! 폰에서 즐기는 키캡 키링 장난감",
+  "description": "폰에서 즐기는 실사급 3D 키캡 키링 장난감! 청축·갈축·적축 기계식 스위치 소리, 키캡 색과 도안 꾸미기, 그리고 따라 누르기·반짝 잡기·10초 연타·리듬 게임까지.",
   "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#ffe3ec",
-  "theme_color": "#ffe3ec",
+  "background_color": "#241b38",
+  "theme_color": "#241b38",
+  "lang": "ko",
+  "dir": "ltr",
+  "categories": ["games", "entertainment", "kids"],
   "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
     { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ],
+  "screenshots": [
+    { "src": "screenshots/shot-1.png", "sizes": "1080x2160", "type": "image/png", "form_factor": "narrow", "label": "2×2 키캡 키링" },
+    { "src": "screenshots/shot-2.png", "sizes": "1080x2160", "type": "image/png", "form_factor": "narrow", "label": "누르면 빛나는 LED" },
+    { "src": "screenshots/shot-3.png", "sizes": "1080x2160", "type": "image/png", "form_factor": "narrow", "label": "게임 모드" }
   ]
 }

@@ -1,6 +1,6 @@
 // 캐시 우선 서비스 워커 — 한 번 로드하면 오프라인에서도 동작
 
-const CACHE = 'keycap-keyring-v3';
+const CACHE = 'keycap-keyring-v4';
 const ASSETS = [
   './',
   './index.html',
@@ -23,6 +23,9 @@ const ASSETS = [
   './js/vendor/RoomEnvironment.js',
   './manifest.webmanifest',
   './favicon.svg',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
+  './icons/icon-maskable-512.png',
 ];
 
 self.addEventListener('install', (e) => {
